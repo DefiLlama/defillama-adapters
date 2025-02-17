@@ -1,12 +1,15 @@
 const sdk = require("@defillama/sdk");
 const abi = require("./abi.json");
+const BN = require("bn.js");
 const BigNumber = require("bignumber.js");
 const { coreTokens } = require("../helper/chain/aptos");
 const { getResources } = require("../helper/chain/aptos");
 const { getConfig } = require('../helper/cache')
-const { unwrapUniswapLPs, addUniV3LikePosition } = require("../helper/unwrapLPs");
+const { unwrapUniswapLPs } = require("../helper/unwrapLPs");
 const sui = require('../helper/chain/sui')
 const { transformBalances } = require("../helper/portedTokens");
+const { getObject } = require("../helper/chain/sui");
+const { i32BitsToNumber, getCoinAmountFromLiquidity, tickIndexToSqrtPriceX64, addUniV3LikePositionBN } = require("./utils")
 
 async function getProcolAddresses(chain) {
   // if (chain === 'avax') {
@@ -265,7 +268,7 @@ async function calLyfTvlSui(api) {
     const currentSqrtPrice = poolMap.get(poolId).fields.current_sqrt_price
     const tick = Math.floor(Math.log(currentSqrtPrice ** 2) / Math.log(1.0001));
     const [token0, token1] = poolMap.get(poolId).type.replace('>', '').split('<')[1].split(', ')
-    addUniV3LikePosition({ api, token0, token1, liquidity, tickLower, tickUpper, tick })
+    addUniV3LikePositionBN({ api, token0, token1, liquidity, tickLower, tickUpper, tick })
   }
 
   // calculate the Vault TVL.
